@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Auth() {
   const { user, signIn, signUp, resetPassword } = useAuth();
@@ -24,17 +25,45 @@ export default function Auth() {
     return <Navigate to="/" replace />;
   }
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Basic email validation
+    if (!validateEmail(formData.email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Password validation for sign up
+    if ((isSignUp || !isForgotPassword) && formData.password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
 
     try {
       if (isForgotPassword) {
         const { error } = await resetPassword(formData.email);
         if (error) {
+          console.error('Reset password error:', error);
           toast({
             title: "Error",
-            description: error.message,
+            description: error.message || "Failed to send reset email",
             variant: "destructive"
           });
         } else {
@@ -45,11 +74,13 @@ export default function Auth() {
           setIsForgotPassword(false);
         }
       } else if (isSignUp) {
+        console.log('Attempting sign up with:', { email: formData.email, fullName: formData.fullName });
         const { error } = await signUp(formData.email, formData.password, formData.fullName);
         if (error) {
+          console.error('Sign up error:', error);
           toast({
             title: "Sign up failed",
-            description: error.message,
+            description: error.message || "Failed to create account",
             variant: "destructive"
           });
         } else {
@@ -59,16 +90,19 @@ export default function Auth() {
           });
         }
       } else {
+        console.log('Attempting sign in with:', { email: formData.email });
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
+          console.error('Sign in error:', error);
           toast({
             title: "Sign in failed",
-            description: error.message,
+            description: error.message || "Invalid email or password",
             variant: "destructive"
           });
         }
       }
     } catch (error) {
+      console.error('Auth error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -101,6 +135,12 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <Alert className="mb-4">
+            <AlertDescription>
+              Having trouble with email validation? Try using a common email provider like Gmail, Yahoo, or Outlook.
+            </AlertDescription>
+          </Alert>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -112,7 +152,11 @@ export default function Auth() {
                 onChange={handleInputChange}
                 required
                 placeholder="Enter your email"
+                className={!validateEmail(formData.email) && formData.email ? 'border-red-500' : ''}
               />
+              {!validateEmail(formData.email) && formData.email && (
+                <p className="text-sm text-red-500">Please enter a valid email address</p>
+              )}
             </div>
             
             {!isForgotPassword && (
@@ -126,7 +170,9 @@ export default function Auth() {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter your password"
+                  minLength={6}
                 />
+                <p className="text-sm text-gray-500">Password must be at least 6 characters</p>
               </div>
             )}
 
