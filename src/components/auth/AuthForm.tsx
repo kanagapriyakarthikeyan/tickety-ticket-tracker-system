@@ -66,7 +66,7 @@ export function AuthForm({ isSignUp, isForgotPassword, onSuccess }: AuthFormProp
             if (error.message?.includes('User already registered')) {
               toast({
                 title: "Account already exists",
-                description: "An account with this email already exists. Please sign in instead or try resetting your password if you forgot it.",
+                description: "An account with this email already exists. Please sign in instead.",
                 variant: "destructive"
               });
             } else {
@@ -78,8 +78,8 @@ export function AuthForm({ isSignUp, isForgotPassword, onSuccess }: AuthFormProp
             }
           } else {
             toast({
-              title: "Account created successfully!",
-              description: "Please check your email and click the confirmation link to verify your account, then you can sign in."
+              title: "Account created!",
+              description: "Please check your email and click the confirmation link to complete your registration."
             });
             // Clear form and switch to sign in
             setFormData({ email: formData.email, password: '', fullName: '' });
@@ -93,13 +93,13 @@ export function AuthForm({ isSignUp, isForgotPassword, onSuccess }: AuthFormProp
             if (error.message?.includes('Email not confirmed')) {
               toast({
                 title: "Email not verified",
-                description: "Please check your email and click the confirmation link to verify your account before signing in.",
+                description: "Please check your email and click the confirmation link before signing in.",
                 variant: "destructive"
               });
             } else if (error.message?.includes('Invalid login credentials')) {
               toast({
                 title: "Invalid credentials",
-                description: "Please check your email and password. If you haven't verified your email yet, please check your inbox for the confirmation link.",
+                description: "Please check your email and password. If you signed up recently, make sure to verify your email first.",
                 variant: "destructive"
               });
             } else {
@@ -109,6 +109,9 @@ export function AuthForm({ isSignUp, isForgotPassword, onSuccess }: AuthFormProp
                 variant: "destructive"
               });
             }
+          } else {
+            // Success is handled by auth state change in AuthContext
+            console.log('Sign in successful - redirect will be handled automatically');
           }
         }
       }

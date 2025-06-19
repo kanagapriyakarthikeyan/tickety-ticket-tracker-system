@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,10 +7,32 @@ import { AuthForm } from '@/components/auth/AuthForm';
 import { AuthNavigation } from '@/components/auth/AuthNavigation';
 
 export default function Auth() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
 
+  // Handle URL parameters for email confirmation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    
+    if (accessToken && refreshToken) {
+      console.log('Email verification tokens found in URL');
+      // The auth state change listener will handle the redirect
+    }
+  }, []);
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if user is already authenticated
   if (user) {
     return <Navigate to="/" replace />;
   }

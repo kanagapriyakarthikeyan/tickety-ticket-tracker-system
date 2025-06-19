@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
@@ -31,6 +32,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Handle email confirmation and redirect
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('User signed in successfully, user will be redirected to dashboard');
+          
+          // Create or update user profile when they sign in
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: session.user.id,
+              email: session.user.email,
+              full_name: session.user.user_metadata?.full_name || '',
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'id'
+            });
+          
+          if (profileError) {
+            console.error('Error updating profile:', profileError);
+          }
+          
+          // Redirect to dashboard on successful sign in
+          if (window.location.pathname === '/auth') {
+            window.location.href = '/';
+          }
+        }
+        
+        // Handle token refresh
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
+        }
+        
+        // Handle sign out
+        if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          if (window.location.pathname !== '/auth') {
+            window.location.href = '/auth';
+          }
         }
       }
     );
@@ -41,6 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // If user is already logged in and on auth page, redirect to dashboard
+      if (session?.user && window.location.pathname === '/auth') {
+        window.location.href = '/';
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -50,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -61,6 +101,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       });
       
+      // If signup is successful but user needs to confirm email
+      if (data.user && !data.user.email_confirmed_at && !error) {
+        console.log('User signed up, needs email confirmation');
+      }
+      
       return { error };
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -70,10 +115,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
+      
+      if (!error && data.user) {
+        console.log('Sign in successful');
+      }
       
       return { error };
     } catch (error: any) {
