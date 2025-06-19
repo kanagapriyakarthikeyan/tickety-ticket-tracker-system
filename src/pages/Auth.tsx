@@ -2,138 +2,36 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { AuthForm } from '@/components/auth/AuthForm';
+import { AuthNavigation } from '@/components/auth/AuthNavigation';
 
 export default function Auth() {
-  const { user, signIn, signUp, resetPassword } = useAuth();
-  const { toast } = useToast();
+  const { user } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    fullName: ''
-  });
 
   if (user) {
     return <Navigate to="/" replace />;
   }
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  const handleToggleSignUp = () => {
+    setIsSignUp(!isSignUp);
+    setIsForgotPassword(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    // Basic email validation
-    if (!validateEmail(formData.email)) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address",
-        variant: "destructive"
-      });
-      setLoading(false);
-      return;
-    }
-
-    // Password validation for sign up and sign in (increased to 8 characters)
-    if ((isSignUp || !isForgotPassword) && formData.password.length < 8) {
-      toast({
-        title: "Password too short",
-        description: "Password must be at least 8 characters long",
-        variant: "destructive"
-      });
-      setLoading(false);
-      return;
-    }
-
-    try {
-      if (isForgotPassword) {
-        const { error } = await resetPassword(formData.email);
-        if (error) {
-          console.error('Reset password error:', error);
-          toast({
-            title: "Error",
-            description: error.message || "Failed to send reset email",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Password reset sent",
-            description: "Check your email for the password reset link"
-          });
-          setIsForgotPassword(false);
-        }
-      } else if (isSignUp) {
-        console.log('Attempting sign up with:', { email: formData.email, fullName: formData.fullName });
-        const { error } = await signUp(formData.email, formData.password, formData.fullName);
-        if (error) {
-          console.error('Sign up error:', error);
-          toast({
-            title: "Sign up failed",
-            description: error.message || "Failed to create account",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Account created successfully!",
-            description: "Please check your email and click the confirmation link to verify your account, then you can sign in."
-          });
-          // Switch to sign in mode after successful signup
-          setIsSignUp(false);
-          setFormData({ email: formData.email, password: '', fullName: '' });
-        }
-      } else {
-        console.log('Attempting sign in with:', { email: formData.email });
-        const { error } = await signIn(formData.email, formData.password);
-        if (error) {
-          console.error('Sign in error:', error);
-          if (error.message.includes('Email not confirmed')) {
-            toast({
-              title: "Email not verified",
-              description: "Please check your email and click the confirmation link to verify your account before signing in.",
-              variant: "destructive"
-            });
-          } else {
-            toast({
-              title: "Sign in failed",
-              description: error.message || "Invalid email or password",
-              variant: "destructive"
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Auth error:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleToggleForgotPassword = () => {
+    setIsForgotPassword(!isForgotPassword);
+    setIsSignUp(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  const handleFormSuccess = () => {
+    if (isSignUp) {
+      setIsSignUp(false);
+    }
+    if (isForgotPassword) {
+      setIsForgotPassword(false);
+    }
   };
 
   return (
@@ -151,108 +49,18 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter your email"
-                className={!validateEmail(formData.email) && formData.email ? 'border-red-500' : ''}
-              />
-              {!validateEmail(formData.email) && formData.email && (
-                <p className="text-sm text-red-500">Please enter a valid email address</p>
-              )}
-            </div>
-            
-            {!isForgotPassword && (
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Enter your password"
-                    minLength={8}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={togglePasswordVisibility}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <p className="text-sm text-gray-500">Password must be at least 8 characters</p>
-              </div>
-            )}
-
-            {isSignUp && !isForgotPassword && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  placeholder="Enter your full name"
-                />
-              </div>
-            )}
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : 
-                isForgotPassword ? 'Send Reset Link' :
-                isSignUp ? 'Sign Up' : 'Sign In'
-              }
-            </Button>
-          </form>
-
-          <div className="mt-4 space-y-2 text-center text-sm">
-            {!isForgotPassword && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-blue-600 hover:underline"
-                >
-                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-                </button>
-                <br />
-                <button
-                  type="button"
-                  onClick={() => setIsForgotPassword(true)}
-                  className="text-blue-600 hover:underline"
-                >
-                  Forgot your password?
-                </button>
-              </>
-            )}
-            
-            {isForgotPassword && (
-              <button
-                type="button"
-                onClick={() => setIsForgotPassword(false)}
-                className="text-blue-600 hover:underline"
-              >
-                Back to sign in
-              </button>
-            )}
-          </div>
+          <AuthForm
+            isSignUp={isSignUp}
+            isForgotPassword={isForgotPassword}
+            onSuccess={handleFormSuccess}
+          />
+          
+          <AuthNavigation
+            isSignUp={isSignUp}
+            isForgotPassword={isForgotPassword}
+            onToggleSignUp={handleToggleSignUp}
+            onToggleForgotPassword={handleToggleForgotPassword}
+          />
         </CardContent>
       </Card>
     </div>

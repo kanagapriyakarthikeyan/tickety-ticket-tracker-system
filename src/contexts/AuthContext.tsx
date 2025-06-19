@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,9 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Handle email confirmation
+        // Handle email confirmation and redirect
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('User signed in, redirecting to dashboard');
+          console.log('User signed in successfully, user will be redirected to dashboard');
         }
       }
     );
@@ -48,27 +47,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName || ''
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName || ''
+          }
         }
-      }
-    });
-    return { error };
+      });
+      
+      return { error };
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      return { error };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      return { error };
+    } catch (error: any) {
+      console.error('Signin error:', error);
+      return { error };
+    }
   };
 
   const signOut = async () => {
