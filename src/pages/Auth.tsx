@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Auth() {
   const { user, signIn, signUp, resetPassword } = useAuth();
@@ -135,12 +133,6 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert className="mb-4">
-            <AlertDescription>
-              Having trouble with email validation? Try using a common email provider like Gmail, Yahoo, or Outlook.
-            </AlertDescription>
-          </Alert>
-          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
