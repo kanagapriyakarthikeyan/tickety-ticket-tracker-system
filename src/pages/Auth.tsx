@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function Auth() {
   const { user, signIn, signUp, resetPassword } = useAuth();
@@ -13,6 +15,7 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -43,11 +46,11 @@ export default function Auth() {
       return;
     }
 
-    // Password validation for sign up
-    if ((isSignUp || !isForgotPassword) && formData.password.length < 6) {
+    // Password validation for sign up and sign in (increased to 8 characters)
+    if ((isSignUp || !isForgotPassword) && formData.password.length < 8) {
       toast({
         title: "Password too short",
-        description: "Password must be at least 6 characters long",
+        description: "Password must be at least 8 characters long",
         variant: "destructive"
       });
       setLoading(false);
@@ -83,20 +86,31 @@ export default function Auth() {
           });
         } else {
           toast({
-            title: "Account created",
-            description: "Check your email to verify your account"
+            title: "Account created successfully!",
+            description: "Please check your email and click the confirmation link to verify your account, then you can sign in."
           });
+          // Switch to sign in mode after successful signup
+          setIsSignUp(false);
+          setFormData({ email: formData.email, password: '', fullName: '' });
         }
       } else {
         console.log('Attempting sign in with:', { email: formData.email });
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
           console.error('Sign in error:', error);
-          toast({
-            title: "Sign in failed",
-            description: error.message || "Invalid email or password",
-            variant: "destructive"
-          });
+          if (error.message.includes('Email not confirmed')) {
+            toast({
+              title: "Email not verified",
+              description: "Please check your email and click the confirmation link to verify your account before signing in.",
+              variant: "destructive"
+            });
+          } else {
+            toast({
+              title: "Sign in failed",
+              description: error.message || "Invalid email or password",
+              variant: "destructive"
+            });
+          }
         }
       }
     } catch (error) {
@@ -116,6 +130,10 @@ export default function Auth() {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -154,17 +172,31 @@ export default function Auth() {
             {!isForgotPassword && (
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter your password"
-                  minLength={6}
-                />
-                <p className="text-sm text-gray-500">Password must be at least 6 characters</p>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter your password"
+                    minLength={8}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500">Password must be at least 8 characters</p>
               </div>
             )}
 
