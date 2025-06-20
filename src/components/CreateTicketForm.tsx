@@ -151,6 +151,7 @@ export function CreateTicketForm() {
                   <SelectItem value="Billing">Billing</SelectItem>
                   <SelectItem value="General">General Inquiry</SelectItem>
                   <SelectItem value="Bug">Bug Report</SelectItem>
+                  <SelectItem value="Feature">Feature Request</SelectItem>
                 </SelectContent>
               </Select>
             </div>
