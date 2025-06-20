@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Assignee {
+  id: string;
+  name: string;
+  email: string;
+}
 
 export function CreateTicketForm() {
   const [formData, setFormData] = useState({
@@ -17,10 +24,33 @@ export function CreateTicketForm() {
     category: '',
     customerName: '',
     customerEmail: '',
+    assigneeId: '',
   });
+  const [assignees, setAssignees] = useState<Assignee[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchAssignees();
+  }, []);
+
+  const fetchAssignees = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('assignees')
+        .select('id, name, email')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching assignees:', error);
+      } else {
+        setAssignees(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching assignees:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +155,7 @@ export function CreateTicketForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Priority</Label>
               <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
@@ -152,6 +182,21 @@ export function CreateTicketForm() {
                   <SelectItem value="General">General Inquiry</SelectItem>
                   <SelectItem value="Bug">Bug Report</SelectItem>
                   <SelectItem value="Feature">Feature Request</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Assignee</Label>
+              <Select value={formData.assigneeId} onValueChange={(value) => handleInputChange('assigneeId', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select assignee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {assignees.map((assignee) => (
+                    <SelectItem key={assignee.id} value={assignee.id}>
+                      {assignee.name} ({assignee.email})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

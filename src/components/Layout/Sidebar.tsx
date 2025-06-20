@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Home, Ticket, Users, Settings } from 'lucide-react';
+import { Home, Ticket, Users, Settings, UserCheck } from 'lucide-react';
 
 const menuItems = [
   {
@@ -28,6 +28,11 @@ const menuItems = [
     title: "Customers",
     url: "/customers",
     icon: Users,
+  },
+  {
+    title: "Assignees",
+    url: "/assignees",
+    icon: UserCheck,
   },
   {
     title: "Settings",

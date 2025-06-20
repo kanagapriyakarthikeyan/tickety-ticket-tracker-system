@@ -9,9 +9,11 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppSidebar } from "@/components/Layout/Sidebar";
 import { Header } from "@/components/Layout/Header";
+import { AssigneeRegistration } from "@/components/auth/AssigneeRegistration";
 import Dashboard from "./pages/Dashboard";
 import AllTickets from "./pages/AllTickets";
 import Customers from "./pages/Customers";
+import Assignees from "./pages/Assignees";
 import Settings from "./pages/Settings";
 import CreateTicket from "./pages/CreateTicket";
 import Auth from "./pages/Auth";
@@ -28,6 +30,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/assignee-registration" element={<AssigneeRegistration />} />
             <Route path="/*" element={
               <ProtectedRoute>
                 <SidebarProvider>
@@ -40,6 +43,7 @@ const App = () => (
                           <Route path="/" element={<Dashboard />} />
                           <Route path="/tickets" element={<AllTickets />} />
                           <Route path="/customers" element={<Customers />} />
+                          <Route path="/assignees" element={<Assignees />} />
                           <Route path="/settings" element={<Settings />} />
                           <Route path="/create-ticket" element={<CreateTicket />} />
                           <Route path="*" element={<NotFound />} />

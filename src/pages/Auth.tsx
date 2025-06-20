@@ -5,11 +5,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { AuthNavigation } from '@/components/auth/AuthNavigation';
+import { UserTypeSelection } from '@/components/auth/UserTypeSelection';
 
 export default function Auth() {
   const { user, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [showUserTypeSelection, setShowUserTypeSelection] = useState(true);
+  const [userType, setUserType] = useState<'customer' | 'assignee' | null>(null);
 
   // Handle URL parameters for email confirmation
   useEffect(() => {
@@ -37,6 +40,15 @@ export default function Auth() {
     return <Navigate to="/" replace />;
   }
 
+  const handleSelectCustomer = () => {
+    setUserType('customer');
+    setShowUserTypeSelection(false);
+  };
+
+  const handleSelectAssignee = () => {
+    window.location.href = '/assignee-registration';
+  };
+
   const handleToggleSignUp = () => {
     setIsSignUp(!isSignUp);
     setIsForgotPassword(false);
@@ -56,6 +68,22 @@ export default function Auth() {
     }
   };
 
+  const handleBackToSelection = () => {
+    setShowUserTypeSelection(true);
+    setUserType(null);
+    setIsSignUp(false);
+    setIsForgotPassword(false);
+  };
+
+  if (showUserTypeSelection) {
+    return (
+      <UserTypeSelection
+        onSelectCustomer={handleSelectCustomer}
+        onSelectAssignee={handleSelectAssignee}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
@@ -65,8 +93,8 @@ export default function Auth() {
             {isForgotPassword 
               ? 'Reset your password' 
               : isSignUp 
-                ? 'Create your account' 
-                : 'Sign in to your account'
+                ? 'Create your customer account' 
+                : 'Sign in to your customer account'
             }
           </CardDescription>
         </CardHeader>
@@ -83,6 +111,16 @@ export default function Auth() {
             onToggleSignUp={handleToggleSignUp}
             onToggleForgotPassword={handleToggleForgotPassword}
           />
+
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={handleBackToSelection}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              ← Back to user type selection
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -2,7 +2,7 @@
 import React from 'react';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Bell, Plus, LogOut } from 'lucide-react';
+import { Bell, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +36,6 @@ export function Header() {
           </Button>
           <Link to="/create-ticket">
             <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
               Create Ticket
             </Button>
           </Link>
