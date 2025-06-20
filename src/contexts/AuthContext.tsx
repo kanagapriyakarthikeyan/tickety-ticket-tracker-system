@@ -60,12 +60,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('Token refreshed successfully');
         }
         
-        // Handle sign out
+        // Handle sign out - ensure redirect happens
         if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
-          if (window.location.pathname !== '/auth') {
+          console.log('User signed out, redirecting to auth page');
+          // Force redirect to auth page after sign out
+          setTimeout(() => {
             window.location.href = '/auth';
-          }
+          }, 100);
         }
       }
     );
@@ -132,7 +133,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    console.log('Signing out user...');
     const { error } = await supabase.auth.signOut();
+    
+    if (!error) {
+      // Clear local state immediately
+      setUser(null);
+      setSession(null);
+      console.log('Sign out successful, redirecting...');
+      
+      // Force redirect to auth page
+      window.location.href = '/auth';
+    }
+    
     return { error };
   };
 
