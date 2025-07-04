@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { createTicket } from '@/api/tickets';
 
 interface Assignee {
   id: string;
@@ -26,6 +25,7 @@ export function CreateTicketForm() {
     customerEmail: '',
     assigneeId: '',
   });
+  const [file, setFile] = useState<File | null>(null);
   const [assignees, setAssignees] = useState<Assignee[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -37,61 +37,47 @@ export function CreateTicketForm() {
 
   const fetchAssignees = async () => {
     try {
-      const { data, error } = await supabase
-        .from('assignees')
-        .select('id, name, email')
-        .order('name');
-
-      if (error) {
-        console.error('Error fetching assignees:', error);
-      } else {
-        setAssignees(data || []);
-      }
+      const response = await fetch('/api/assignees');
+      if (!response.ok) throw new Error('Failed to fetch assignees');
+      const data = await response.json();
+      setAssignees(data || []);
     } catch (error) {
-      console.error('Error fetching assignees:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch assignees from the server",
+        variant: "destructive"
+      });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Store in localStorage for now (will be replaced with database)
-    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
-    const newTicket = {
-      id: Date.now().toString(),
-      ...formData,
-      status: 'Open',
-      createdAt: new Date().toISOString(),
-    };
-    
-    tickets.push(newTicket);
-    localStorage.setItem('tickets', JSON.stringify(tickets));
-
-    // Store customer info
-    const customers = JSON.parse(localStorage.getItem('customers') || '[]');
-    const existingCustomer = customers.find((c: any) => c.email === formData.customerEmail);
-    
-    if (!existingCustomer) {
-      customers.push({
-        id: Date.now().toString(),
-        name: formData.customerName,
-        email: formData.customerEmail,
-        createdAt: new Date().toISOString(),
+    try {
+      const ticket = await createTicket({
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        category: formData.category,
+        assigneeId: formData.assigneeId,
       });
-      localStorage.setItem('customers', JSON.stringify(customers));
+      if (file && ticket && ticket.id) {
+        const formDataObj = new FormData();
+        formDataObj.append('file', file);
+        const token = localStorage.getItem('token');
+        await fetch(`/api/tickets/${ticket.id}/attachments`, {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          body: formDataObj,
+        });
+      }
+      toast({ title: 'Ticket Created Successfully' });
+      navigate('/tickets');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    toast({
-      title: "Ticket Created Successfully",
-      description: `Ticket #${newTicket.id} has been created and assigned.`,
-    });
-
-    setIsSubmitting(false);
-    navigate('/tickets');
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -200,6 +186,16 @@ export function CreateTicketForm() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="attachment">Attachment (optional)</Label>
+            <Input
+              id="attachment"
+              type="file"
+              onChange={e => setFile(e.target.files?.[0] || null)}
+              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"
+            />
           </div>
 
           <div className="flex gap-3 pt-4">

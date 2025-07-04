@@ -1,15 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, UserCheck } from 'lucide-react';
 
-interface UserTypeSelectionProps {
-  onSelectCustomer: () => void;
-  onSelectAssignee: () => void;
-}
-
-export function UserTypeSelection({ onSelectCustomer, onSelectAssignee }: UserTypeSelectionProps) {
+export function UserTypeSelection({ onSelectCustomer, onSelectAssignee }: { onSelectCustomer: () => void, onSelectAssignee: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
@@ -28,7 +22,6 @@ export function UserTypeSelection({ onSelectCustomer, onSelectAssignee }: UserTy
             <Users className="w-6 h-6" />
             Customer Login
           </Button>
-          
           <Button
             onClick={onSelectAssignee}
             className="w-full h-16 flex items-center justify-center gap-3 text-lg"

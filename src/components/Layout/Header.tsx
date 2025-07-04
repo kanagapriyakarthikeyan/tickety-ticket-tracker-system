@@ -1,49 +1,49 @@
-
 import React from 'react';
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Bell, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Sun, Moon, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useTheme } from '@/hooks/use-theme';
 
-export function Header() {
-  const { signOut, user } = useAuth();
-  const { toast } = useToast();
+export default function Header() {
+  const auth = useAuth();
+  const userName = auth?.user?.fullName || 'User';
+  const userType = auth?.user?.type;
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive"
-      });
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/auth');
   };
 
   return (
-    <header className="border-b bg-white/50 backdrop-blur-sm sticky top-0 z-40">
-      <div className="flex h-16 items-center px-4 gap-4">
-        <SidebarTrigger />
-        <div className="flex-1" />
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">
-            Welcome, {user?.email}
-          </span>
-          <Button variant="outline" size="sm">
-            <Bell className="w-4 h-4" />
-          </Button>
-          <Link to="/create-ticket">
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-              Create Ticket
-            </Button>
-          </Link>
-          <Button variant="outline" size="sm" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
+    <header className="w-full flex items-center justify-end px-8 py-4 bg-white border-b min-h-[48px] dark:bg-gray-900 dark:border-gray-800">
+      <span className="text-muted-foreground mr-4">
+        Welcome, <span className="font-semibold">{userName}</span>{userType === 'assignee' && ' (Assignee)'}
+      </span>
+      <Link
+        to="/create-ticket"
+        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition-all"
+      >
+        Create Ticket
+      </Link>
+      <button
+        className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ml-2"
+        aria-label="Toggle theme"
+        onClick={toggleTheme}
+      >
+        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      </button>
+      <button
+        className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ml-2"
+        aria-label="User profile"
+        onClick={() => navigate('/profile')}
+      >
+        <User className="w-5 h-5" />
+      </button>
+      <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ml-2" aria-label="Sign out" onClick={handleLogout}>
+        <LogOut className="w-5 h-5" />
+      </button>
     </header>
   );
 }

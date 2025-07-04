@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 export function AssigneeRegistration() {
@@ -25,30 +23,7 @@ export function AssigneeRegistration() {
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('assignees')
-        .insert([
-          {
-            name: formData.name,
-            email: formData.email,
-            contact_number: formData.contactNumber,
-            address: formData.address
-          }
-        ]);
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Assignee registered successfully!"
-        });
-        navigate('/auth');
-      }
+      // Placeholder for the removed Supabase usage
     } catch (error) {
       toast({
         title: "Error",
@@ -122,8 +97,8 @@ export function AssigneeRegistration() {
               <Button type="submit" disabled={loading} className="flex-1">
                 {loading ? 'Registering...' : 'Register'}
               </Button>
-              <Button type="button" variant="outline" onClick={() => navigate('/auth')}>
-                Back
+              <Button type="button" variant="outline" onClick={() => navigate('/assignee-login')}>
+                Switch to Login
               </Button>
             </div>
           </form>

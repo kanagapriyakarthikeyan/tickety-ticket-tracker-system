@@ -1,35 +1,28 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Mail, User } from 'lucide-react';
+import { apiRequest } from '@/api/client';
+import { useNavigate } from 'react-router-dom';
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const loadedCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
-    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
-    
-    // Add ticket count to each customer
-    const customersWithTickets = loadedCustomers.map((customer: any) => ({
-      ...customer,
-      ticketCount: tickets.filter((ticket: any) => ticket.customerEmail === customer.email).length,
-      lastTicket: tickets
-        .filter((ticket: any) => ticket.customerEmail === customer.email)
-        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
-    }));
-    
-    setCustomers(customersWithTickets);
-    setFilteredCustomers(customersWithTickets);
+    // Fetch customers from backend API
+    apiRequest('/customers').then((data) => {
+      setCustomers(data);
+      setFilteredCustomers(data);
+    });
   }, []);
 
   useEffect(() => {
-    const filtered = customers.filter((customer: any) =>
+    const filtered = customers.filter((customer) =>
       customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -78,7 +71,7 @@ export default function Customers() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {filteredCustomers.map((customer: any) => (
+              {filteredCustomers.map((customer) => (
                 <div key={customer.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -92,28 +85,18 @@ export default function Customers() {
                       </div>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span>Customer since: {new Date(customer.createdAt).toLocaleDateString()}</span>
-                        {customer.lastTicket && (
-                          <span>Last ticket: {new Date(customer.lastTicket.createdAt).toLocaleDateString()}</span>
-                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge variant="secondary">
-                        {customer.ticketCount} ticket{customer.ticketCount !== 1 ? 's' : ''}
+                        {/* Ticket count and last ticket info can be added if needed by extending the API */}
+                        Customer
                       </Badge>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/customers/${customer.id}/history`)}>
                         View History
                       </Button>
                     </div>
                   </div>
-                  
-                  {customer.lastTicket && (
-                    <div className="mt-3 pt-3 border-t">
-                      <p className="text-sm">
-                        <span className="font-medium">Latest ticket:</span> {customer.lastTicket.title}
-                      </p>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
