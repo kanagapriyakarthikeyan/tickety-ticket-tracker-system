@@ -6,6 +6,7 @@ import { apiRequest } from '@/api/tickets';
 import { Button } from '@/components/ui/button';
 import { getTicketsByMonth, getTicketsByPriority, getAverageResponseTime } from '@/api/dashboard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line, Label } from 'recharts';
+import { motion } from 'framer-motion';
 
 export default function Dashboard() {
   const [summary, setSummary] = useState({
@@ -134,7 +135,7 @@ export default function Dashboard() {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="count" fill="#2563eb" />
+                <Bar dataKey="count" fill="#2563eb" animationDuration={1200} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -145,7 +146,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
+              <PieChart width={250} height={250}>
                 <Pie
                   data={ticketsByPriority.map(p => ({ priority: p.priority, count: parseInt(p.count) }))}
                   dataKey="count"
@@ -156,6 +157,10 @@ export default function Dashboard() {
                   outerRadius={80}
                   fill="#8884d8"
                   label
+                  isAnimationActive={true}
+                  animationBegin={0}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
                 >
                   {ticketsByPriority.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={["#22c55e", "#facc15", "#f97316", "#ef4444"][index % 4]} />
@@ -176,6 +181,12 @@ export default function Dashboard() {
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={avgResponseTime}>
+                <defs>
+                  <linearGradient id="colorUv" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#a78bfa" />
+                    <stop offset="100%" stopColor="#6366f1" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day">
                   <Label value="Day of Week" offset={-5} position="insideBottom" />
@@ -184,7 +195,14 @@ export default function Dashboard() {
                   <Label value="Avg Hours" angle={-90} position="insideLeft" />
                 </YAxis>
                 <Tooltip />
-                <Line type="natural" dataKey="avgHours" stroke="#6366f1" strokeWidth={2} dot />
+                <Line
+                  type="monotone"
+                  dataKey="avgHours"
+                  stroke="url(#colorUv)"
+                  strokeWidth={3}
+                  dot={{ r: 4, stroke: "#6366f1", strokeWidth: 2, fill: "#fff" }}
+                  activeDot={{ r: 6, fill: "#6366f1" }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

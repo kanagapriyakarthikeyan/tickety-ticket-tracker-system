@@ -4,6 +4,7 @@ import { customerLogin, customerRegister } from '@/api/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function CustomerAuthForm({ onBack }: { onBack: () => void }) {
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
@@ -12,7 +13,9 @@ export default function CustomerAuthForm({ onBack }: { onBack: () => void }) {
   const [forgotLoading, setForgotLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const auth = useAuth();
+  const setUser = (auth && typeof auth === 'object' && 'setUser' in auth) ? (auth as any).setUser : undefined;
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -25,13 +28,13 @@ export default function CustomerAuthForm({ onBack }: { onBack: () => void }) {
       if (mode === 'signin') {
         const res = await customerLogin(form.email, form.password);
         if (res.token) localStorage.setItem('token', res.token);
-        if (res.user) setUser({ fullName: res.user.fullName, email: res.user.email, type: 'customer' });
+        if (res.user && setUser) setUser({ fullName: res.user.fullName, email: res.user.email, type: 'customer' });
         toast({ title: 'Login successful', description: 'Welcome, customer!' });
         navigate('/dashboard');
       } else if (mode === 'signup') {
         const res = await customerRegister(form.fullName, form.email, form.password);
         if (res.token) localStorage.setItem('token', res.token);
-        if (res.user) setUser({ fullName: res.user.fullName, email: res.user.email, type: 'customer' });
+        if (res.user && setUser) setUser({ fullName: res.user.fullName, email: res.user.email, type: 'customer' });
         toast({ title: 'Account created!', description: 'Welcome, customer!' });
         navigate('/dashboard');
       } else if (mode === 'forgot') {
@@ -78,17 +81,27 @@ export default function CustomerAuthForm({ onBack }: { onBack: () => void }) {
           {(mode === 'signin' || mode === 'signup') && (
             <div>
               <label className="block mb-1 font-medium">Password</label>
-              <input
-                name="password"
-                type="password"
-                className="w-full border rounded px-3 py-2"
-                placeholder="Enter your password"
-                value={form.password}
-                onChange={handleChange}
-                required
-                minLength={8}
-                disabled={loading}
-              />
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="w-full border rounded px-3 py-2 pr-10"
+                  placeholder="Enter your password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((v) => !v)}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
               <div className="text-xs text-muted-foreground mt-1">Password must be at least 8 characters</div>
             </div>
           )}

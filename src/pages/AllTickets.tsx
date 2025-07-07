@@ -152,7 +152,7 @@ export default function AllTickets() {
                 const ticketAttachments = attachments[ticket.id] || [];
                 const firstImage = ticketAttachments.find(att => att.mimetype && att.mimetype.startsWith('image/'));
                 return (
-                  <div key={ticket.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div key={ticket.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                     {/* Image thumbnail at the top of the card */}
                     {firstImage && (
                       <div className="mb-3">
@@ -169,34 +169,34 @@ export default function AllTickets() {
                         </button>
                       </div>
                     )}
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{ticket.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Ticket #{ticket.id} • Customer: {ticket.customerName} ({ticket.customerEmail})
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getPriorityColor(ticket.priority)}>
-                          {ticket.priority}
-                        </Badge>
-                        <Badge className={getStatusColor(ticket.status)}>
-                          {ticket.status}
-                        </Badge>
-                      </div>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{ticket.title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Ticket #{ticket.id} • Customer: {ticket.customerName} ({ticket.customerEmail})
+                      </p>
                     </div>
-                    <p className="text-sm mb-4 text-gray-600">{ticket.description}</p>
-                    <div className="flex justify-between items-center">
-                      <div className="text-xs text-muted-foreground">
-                        Created: {new Date(ticket.createdAt).toLocaleString()}
-                        {ticket.category && ` • Category: ${ticket.category}`}
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getPriorityColor(ticket.priority)}>
+                        {ticket.priority}
+                      </Badge>
+                      <Badge className={getStatusColor(ticket.status)}>
+                        {ticket.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  <p className="text-sm mb-4 text-gray-600">{ticket.description}</p>
+                  <div className="flex justify-between items-center">
+                    <div className="text-xs text-muted-foreground">
+                      Created: {new Date(ticket.createdAt).toLocaleString()}
+                      {ticket.category && ` • Category: ${ticket.category}`}
+                    </div>
                     </div>
                     <div className="flex justify-end mt-2">
                       <Button size="sm" variant="outline" onClick={() => setCommentTicketId(ticket.id)}>
                         Comments
-                      </Button>
-                    </div>
+                          </Button>
+                      </div>
                   </div>
                 );
               })}

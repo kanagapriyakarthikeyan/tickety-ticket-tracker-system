@@ -6,8 +6,9 @@ import { useTheme } from '@/hooks/use-theme';
 
 export default function Header() {
   const auth = useAuth();
-  const userName = auth?.user?.fullName || 'User';
-  const userType = auth?.user?.type;
+  const user = (auth && typeof auth === 'object' && 'user' in auth) ? (auth as any).user : undefined;
+  const userName = user?.fullName || 'User';
+  const userType = user?.type;
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 

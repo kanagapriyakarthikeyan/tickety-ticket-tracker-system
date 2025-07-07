@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/api/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
   const auth = useAuth();
@@ -12,6 +13,7 @@ export default function Profile() {
   const [form, setForm] = useState({ fullName: '', email: '', password: '', contactNumber: '', address: '' });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userType === 'assignee') {
@@ -140,6 +142,13 @@ export default function Profile() {
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            onClick={() => navigate('/dashboard')}
+          >
+            Back to Dashboard
+          </Button>
         </CardContent>
       </Card>
     </div>

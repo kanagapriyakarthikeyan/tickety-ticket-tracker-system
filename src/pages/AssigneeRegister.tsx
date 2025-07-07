@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { assigneeRegister } from '@/api/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function AssigneeRegister() {
   const [formData, setFormData] = useState({
@@ -19,7 +20,9 @@ export default function AssigneeRegister() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const auth = useAuth();
+  const setUser = (auth && typeof auth === 'object' && 'setUser' in auth) ? (auth as any).setUser : undefined;
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,7 +40,7 @@ export default function AssigneeRegister() {
         formData.address
       );
       if (res.token) localStorage.setItem('token', res.token);
-      if (res.user) setUser({ fullName: res.user.fullName, email: res.user.email, type: 'assignee' });
+      if (res.user && setUser) setUser({ fullName: res.user.fullName, email: res.user.email, type: 'assignee' });
       toast({ title: 'Registration successful', description: 'Welcome, assignee!' });
       navigate('/assignee/tickets');
     } catch (err: any) {
@@ -73,15 +76,26 @@ export default function AssigneeRegister() {
               required
               disabled={loading}
             />
-            <Input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
+            <div className="relative">
+              <Input
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                disabled={loading}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
             <Input
               name="contactNumber"
               placeholder="Contact Number"
@@ -110,6 +124,14 @@ export default function AssigneeRegister() {
               disabled={loading}
             >
               Switch to Login
+            </button>
+            <button
+              type="button"
+              className="w-full mt-2 text-blue-600 hover:underline text-sm"
+              onClick={() => navigate('/auth')}
+              disabled={loading}
+            >
+              &larr; Back to user type selection
             </button>
           </form>
         </CardContent>

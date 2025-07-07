@@ -117,21 +117,21 @@ export default function CustomerTicketDetails() {
   };
 
   if (ticketId) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 p-4">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ticket Details</CardTitle>
-                <CardDescription>Ticket ID: {ticketId}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* You can fetch and display more ticket details here if needed */}
-                <h3 className="font-semibold mb-2">Comments</h3>
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ticket Details</CardTitle>
+              <CardDescription>Ticket ID: {ticketId}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* You can fetch and display more ticket details here if needed */}
+              <h3 className="font-semibold mb-2">Comments</h3>
                 {ticketComments[ticketId]?.length === 0 ? (
-                  <div>No comments yet.</div>
-                ) : (
+                <div>No comments yet.</div>
+              ) : (
                   <div className="space-y-2 mb-2">
                     {ticketComments[ticketId]?.map(comment => {
                       useEffect(() => {
@@ -201,7 +201,7 @@ export default function CustomerTicketDetails() {
                       </DialogContent>
                     </Dialog>
                   </div>
-                )}
+              )}
                 <form
                   onSubmit={e => {
                     e.preventDefault();
@@ -213,15 +213,15 @@ export default function CustomerTicketDetails() {
                     <input
                       type="text"
                       className="flex-1 border rounded px-2 py-1 text-sm"
-                      placeholder="Add a comment..."
+                  placeholder="Add a comment..."
                       value={commentInputs[ticketId] || ''}
                       onChange={e => setCommentInputs(prev => ({ ...prev, [ticketId]: e.target.value }))}
                       disabled={addingComment[ticketId]}
-                      required
-                    />
+                  required
+                />
                     <Button type="submit" size="sm" disabled={addingComment[ticketId] || !(commentInputs[ticketId] || '').trim()}>
                       {addingComment[ticketId] ? 'Adding...' : 'Add'}
-                    </Button>
+                </Button>
                   </div>
                   <input
                     type="file"
@@ -230,16 +230,16 @@ export default function CustomerTicketDetails() {
                     accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"
                     disabled={addingComment[ticketId]}
                   />
-                </form>
-                <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
-                  Back
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+              </form>
+              <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
+                Back
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </ProtectedRoute>
-    );
+      </div>
+    </ProtectedRoute>
+  );
   }
 
   // If only customerId is present, show ticket history

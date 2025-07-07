@@ -1,4 +1,5 @@
 import { apiRequest } from './client';
+import { motion } from 'framer-motion';
 
 export function getDashboardSummary() {
   return apiRequest('/dashboard/summary');

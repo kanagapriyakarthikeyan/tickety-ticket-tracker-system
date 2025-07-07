@@ -34,7 +34,7 @@ export function addTicketComment(ticketId: string, content: string) {
     method: 'POST',
     body: JSON.stringify({ content }),
   });
-}
+} 
 export async function getTicketAttachments(ticketId: string) {
   const token = localStorage.getItem('token');
   const res = await fetch(`${API_URL}/tickets/${ticketId}/attachments`, {

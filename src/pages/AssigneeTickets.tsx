@@ -282,13 +282,6 @@ function AssigneeTicketsPage() {
                               </li>
                             ))}
                           </ul>
-                          {/* Image Preview Modal */}
-                          <Dialog open={imageModal.open} onOpenChange={open => setImageModal(m => ({ ...m, open }))}>
-                            <DialogContent className="flex flex-col items-center justify-center max-w-xl">
-                              <img src={imageModal.src} alt={imageModal.alt} className="max-h-[70vh] max-w-full rounded shadow" />
-                              <div className="mt-2 text-center text-sm text-muted-foreground">{imageModal.alt}</div>
-                            </DialogContent>
-                          </Dialog>
                         </div>
                       )}
                       <div className="flex items-center gap-2 mt-2">
@@ -341,6 +334,13 @@ function AssigneeTicketsPage() {
         onClose={() => setCommentTicketId(null)}
         isAssignee={true}
       />
+      {/* Move the Dialog for image preview here, outside the ticket list */}
+      <Dialog open={imageModal.open} onOpenChange={open => setImageModal(m => ({ ...m, open }))}>
+        <DialogContent className="flex flex-col items-center justify-center max-w-xl">
+          <img src={imageModal.src} alt={imageModal.alt} className="max-h-[70vh] max-w-full rounded shadow" />
+          <div className="mt-2 text-center text-sm text-muted-foreground">{imageModal.alt}</div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

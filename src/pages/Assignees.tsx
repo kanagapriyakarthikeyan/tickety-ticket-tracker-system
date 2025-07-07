@@ -26,7 +26,7 @@ export default function Assignees() {
     try {
       // Use the backend API endpoint for assignees
       const data = await apiRequest('/assignees');
-      setAssignees(data || []);
+        setAssignees(data || []);
     } catch (error) {
       toast({
         title: "Error",
@@ -66,15 +66,15 @@ export default function Assignees() {
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="w-full px-0 pt-8 space-y-6">
-        <div>
+      <div>
           <h1 className="text-3xl font-bold text-black dark:text-white">Assignees</h1>
           <p className="text-muted-foreground">List of support ticket assignees</p>
-        </div>
+      </div>
         <Card className="w-full">
-          <CardHeader>
+        <CardHeader>
             <CardTitle className="text-2xl font-bold text-black dark:text-white">Assignee List</CardTitle>
-          </CardHeader>
-          <CardContent>
+        </CardHeader>
+        <CardContent>
             {assignees.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">No assignees found in the database.</div>
             ) : (
@@ -90,10 +90,10 @@ export default function Assignees() {
                     </div>
                   </div>
                 ))}
-              </div>
+                </div>
             )}
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
       </div>
     </div>
   );

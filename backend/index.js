@@ -146,13 +146,27 @@ app.post('/api/tickets', authenticateToken, async (req, res) => {
   res.json(result.rows[0]);
 });
 
-app.patch('/api/tickets/:id/resolve', authenticateToken, async (req, res) => {
-  if (req.user.type !== 'assignee') return res.sendStatus(403);
+app.patch('/api/tickets/:id/status', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  await pool.query(
-    'UPDATE tickets SET status = $1, resolved_at = NOW() WHERE id = $2 AND assignee_id = $3',
-    ['Resolved', id, req.user.id]
-  );
+  const { status: newStatus } = req.body;
+  // Only allow assignee to change status
+  const ticketResult = await pool.query('SELECT assignee_id FROM tickets WHERE id = $1', [id]);
+  const ticket = ticketResult.rows[0];
+  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  if (req.user.type !== 'assignee' || ticket.assignee_id !== req.user.id) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  if (newStatus === 'Resolved') {
+    await pool.query(
+      'UPDATE tickets SET status = $1, resolved_at = NOW() WHERE id = $2',
+      [newStatus, id]
+    );
+  } else {
+    await pool.query(
+      'UPDATE tickets SET status = $1 WHERE id = $2',
+      [newStatus, id]
+    );
+  }
   res.json({ success: true });
 });
 
@@ -162,7 +176,7 @@ app.get('/api/tickets/:id/comments', authenticateToken, async (req, res) => {
   // Fetch the ticket to check ownership/assignment
   const ticketResult = await pool.query('SELECT customer_id, assignee_id FROM tickets WHERE id = $1', [id]);
   const ticket = ticketResult.rows[0];
-  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  if (!ticket) return res.status(404).json({ error: 'You are not authorized to view this ticket.' });
   // Only allow the ticket owner or assigned assignee to view comments
   if (
     (req.user.type === 'customer' && ticket.customer_id !== req.user.id) ||
@@ -194,7 +208,7 @@ app.post('/api/tickets/:id/comments', authenticateToken, async (req, res) => {
   // Fetch the ticket to check ownership/assignment
   const ticketResult = await pool.query('SELECT customer_id, assignee_id FROM tickets WHERE id = $1', [id]);
   const ticket = ticketResult.rows[0];
-  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  if (!ticket) return res.status(404).json({ error: 'You are not the owner of this ticket.' });
   let query, params;
   if (req.user.type === 'customer') {
     if (ticket.customer_id !== req.user.id) {
@@ -220,7 +234,7 @@ app.get('/api/dashboard/summary', authenticateToken, async (req, res) => {
   const totalTickets = await pool.query('SELECT COUNT(*) FROM tickets');
   const openTickets = await pool.query("SELECT COUNT(*) FROM tickets WHERE status = 'Open'");
   const resolvedToday = await pool.query(
-    "SELECT COUNT(*) FROM tickets WHERE status = 'Resolved' AND DATE(updated_at) = CURRENT_DATE"
+    "SELECT COUNT(*) FROM tickets WHERE status = 'Resolved' AND DATE(resolved_at) = CURRENT_DATE"
   );
   const totalCustomers = await pool.query('SELECT COUNT(*) FROM customers');
   res.json({
@@ -372,21 +386,6 @@ app.get('/api/customers/:id/tickets', authenticateToken, async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.detail || err.message });
   }
-});
-
-// --- UPDATE TICKET STATUS ---
-app.patch('/api/tickets/:id/status', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  // Only allow assignee to change status
-  const ticketResult = await pool.query('SELECT assignee_id FROM tickets WHERE id = $1', [id]);
-  const ticket = ticketResult.rows[0];
-  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
-  if (req.user.type !== 'assignee' || ticket.assignee_id !== req.user.id) {
-    return res.status(403).json({ error: 'Not authorized' });
-  }
-  await pool.query('UPDATE tickets SET status = $1 WHERE id = $2', [status, id]);
-  res.json({ success: true });
 });
 
 // --- TICKET ATTACHMENT UPLOAD ---
