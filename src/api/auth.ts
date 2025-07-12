@@ -7,10 +7,10 @@ export function customerLogin(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 }
-export function customerRegister(fullName: string, email: string, password: string) {
+export function customerRegister(fullName: string, email: string, password: string, contactNumber: string) {
   return apiRequest('/customer/register', {
     method: 'POST',
-    body: JSON.stringify({ fullName, email, password }),
+    body: JSON.stringify({ fullName, email, password, contactNumber }),
   });
 }
 

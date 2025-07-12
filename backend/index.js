@@ -9,6 +9,7 @@ import path from 'path';
 import fs from 'fs';
 import { sendPasswordResetEmail } from './mailer.js';
 import crypto from 'crypto';
+import twilio from 'twilio';
 dotenv.config();
 
 const app = express();
@@ -41,12 +42,12 @@ function authenticateToken(req, res, next) {
 
 // --- CUSTOMER AUTH ---
 app.post('/api/customer/register', async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password, contactNumber } = req.body;
   const hash = await bcrypt.hash(password, 10);
   try {
     const result = await pool.query(
-      'INSERT INTO customers (full_name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, full_name, email',
-      [fullName, email, hash]
+      'INSERT INTO customers (full_name, email, password_hash, contact_number) VALUES ($1, $2, $3, $4) RETURNING id, full_name, email, contact_number',
+      [fullName, email, hash, contactNumber]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -136,6 +137,10 @@ app.get('/api/assignee/tickets', authenticateToken, async (req, res) => {
   res.json(result.rows);
 });
 
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = twilio(accountSid, authToken);
+
 app.post('/api/tickets', authenticateToken, async (req, res) => {
   if (req.user.type !== 'customer') return res.sendStatus(403);
   const { title, description, priority, category, assigneeId } = req.body;
@@ -143,7 +148,35 @@ app.post('/api/tickets', authenticateToken, async (req, res) => {
     'INSERT INTO tickets (title, description, priority, category, customer_id, assignee_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
     [title, description, priority, category, req.user.id, assigneeId]
   );
-  res.json(result.rows[0]);
+  const ticket = result.rows[0];
+
+  // Fetch assignee details
+  const assigneeResult = await pool.query(
+    'SELECT full_name, contact_number FROM assignees WHERE id = $1',
+    [ticket.assignee_id]
+  );
+  const assignee = assigneeResult.rows[0];
+
+  // Fetch customer details (including contact number)
+  const customerResult = await pool.query(
+    'SELECT full_name, contact_number FROM customers WHERE id = $1',
+    [ticket.customer_id]
+  );
+  const customer = customerResult.rows[0];
+
+  // WhatsApp message template
+  const message = `New Ticket Created!\nID: ${ticket.id}\nTitle: ${ticket.title}\nDescription: ${ticket.description}\nPriority: ${ticket.priority}\nCategory: ${ticket.category}\nCustomer: ${customer ? customer.full_name : 'N/A'}\nAssignee: ${assignee ? assignee.full_name : 'N/A'}\nAssignee Contact: ${assignee ? assignee.contact_number : 'N/A'}`;
+
+  client.messages
+    .create({
+      from: 'whatsapp:+14155238886', // Twilio sandbox number
+      to: `whatsapp:${customer ? customer.contact_number : ''}`,
+      body: message
+    })
+    .then(message => console.log('WhatsApp message sent:', message.sid))
+    .catch(err => console.error('WhatsApp error:', err));
+
+  res.json(ticket);
 });
 
 app.patch('/api/tickets/:id/status', authenticateToken, async (req, res) => {

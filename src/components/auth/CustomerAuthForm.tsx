@@ -8,7 +8,7 @@ import { Eye, EyeOff } from 'lucide-react';
 
 export default function CustomerAuthForm({ onBack }: { onBack: () => void }) {
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
-  const [form, setForm] = useState({ email: '', password: '', fullName: '' });
+  const [form, setForm] = useState({ email: '', password: '', fullName: '', contactNumber: '' });
   const [loading, setLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const { toast } = useToast();
@@ -32,7 +32,7 @@ export default function CustomerAuthForm({ onBack }: { onBack: () => void }) {
         toast({ title: 'Login successful', description: 'Welcome, customer!' });
         navigate('/dashboard');
       } else if (mode === 'signup') {
-        const res = await customerRegister(form.fullName, form.email, form.password);
+        const res = await customerRegister(form.fullName, form.email, form.password, form.contactNumber);
         if (res.token) localStorage.setItem('token', res.token);
         if (res.user && setUser) setUser({ fullName: res.user.fullName, email: res.user.email, type: 'customer' });
         toast({ title: 'Account created!', description: 'Welcome, customer!' });
@@ -106,18 +106,32 @@ export default function CustomerAuthForm({ onBack }: { onBack: () => void }) {
             </div>
           )}
           {mode === 'signup' && (
-            <div>
-              <label className="block mb-1 font-medium">Full Name</label>
-              <input
-                name="fullName"
-                className="w-full border rounded px-3 py-2"
-                placeholder="Enter your full name"
-                value={form.fullName}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
-            </div>
+            <>
+              <div>
+                <label className="block mb-1 font-medium">Full Name</label>
+                <input
+                  name="fullName"
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Enter your full name"
+                  value={form.fullName}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Phone Number</label>
+                <input
+                  name="contactNumber"
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Enter your WhatsApp number (e.g. +919876543210)"
+                  value={form.contactNumber}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </>
           )}
           {mode === 'signin' && (
             <button type="submit" className="w-full bg-blue-600 text-white rounded py-2 font-semibold" disabled={loading}>

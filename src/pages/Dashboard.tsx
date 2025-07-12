@@ -65,6 +65,12 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [location]);
 
+  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const avgResponseTimeFilled = daysOfWeek.map(day => {
+    const found = avgResponseTime.find(d => d.day === day);
+    return { day, avgHours: found ? found.avgHours : 0 };
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -180,7 +186,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={avgResponseTime}>
+              <LineChart data={avgResponseTimeFilled}>
                 <defs>
                   <linearGradient id="colorUv" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stopColor="#a78bfa" />
@@ -191,7 +197,7 @@ export default function Dashboard() {
                 <XAxis dataKey="day">
                   <Label value="Day of Week" offset={-5} position="insideBottom" />
                 </XAxis>
-                <YAxis>
+                <YAxis domain={[0, 8]}>
                   <Label value="Avg Hours" angle={-90} position="insideLeft" />
                 </YAxis>
                 <Tooltip />
