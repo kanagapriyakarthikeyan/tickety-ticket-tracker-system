@@ -169,7 +169,7 @@ app.post('/api/tickets', authenticateToken, async (req, res) => {
 
   client.messages
     .create({
-      from: 'whatsapp:+14155238886', // Twilio sandbox number
+      from: 'whatsapp:  ', // Twilio sandbox number
       to: `whatsapp:${customer ? customer.contact_number : ''}`,
       body: message
     })
